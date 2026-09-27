@@ -32,6 +32,12 @@ export async function fetchIps() {
   return data
 }
 
+export async function fetchBlockedIps() {
+  // GET /api/blocked-ips -> chỉ những IP đã bị Zero-Trust Enforcer chặn
+  const { data } = await api.get('/api/blocked-ips')
+  return data
+}
+
 export async function blockIp(ip) {
   // POST /api/ips/{ip}/block -> Zero-Trust Enforcer gọi netsh advfirewall
   const { data } = await api.post(`/api/ips/${ip}/block`)
