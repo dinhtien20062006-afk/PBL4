@@ -1,0 +1,29 @@
+.alerts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alerts-page-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alerts-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 11px;
+  cursor: pointer;
+}
+
+.alerts-refresh-btn:hover {
+  color: var(--text-h);
+  border-color: var(--text-dim);
+}

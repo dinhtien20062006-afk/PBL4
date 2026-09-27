@@ -1,0 +1,85 @@
+:root {
+  /* Surfaces */
+  --bg: #0a0e16;
+  --panel: #0f1521;
+  --panel-alt: #121a28;
+  --border: #1e2836;
+  --border-soft: #171f2c;
+
+  /* Text */
+  --text: #c7d0dd;
+  --text-h: #eef2f8;
+  --text-dim: #5b6779;
+
+  /* Status accents */
+  --ok: #35c98f;
+  --ok-bg: rgba(53, 201, 143, 0.12);
+  --info: #3aa8e0;
+  --info-bg: rgba(58, 168, 224, 0.12);
+  --warn: #e0a83a;
+  --warn-bg: rgba(224, 168, 58, 0.12);
+  --crit: #e5486b;
+  --crit-bg: rgba(229, 72, 107, 0.12);
+
+  --sans: -apple-system, 'Segoe UI', Roboto, Inter, Arial, sans-serif;
+  --mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, monospace;
+
+  font: 14px/1.5 var(--sans);
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--sans);
+  color: var(--text-h);
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(58, 168, 224, 0.3);
+}
+
+/* Thin scrollbars, matched to the dark surfaces */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
