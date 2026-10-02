@@ -1,79 +1,58 @@
-"""
-smtp_test.py
-------------
-Script don gian dung smtplib de tu dong gui mot loat email thu nghiem toi
-Mail Server (hMailServer) cua chinh nhom, nham tao luu luong SMTP that cho
-module NIDS (nids_engine/sniffer.py) quan sat va phan tich.
-
-CHI dung voi may chu / tai khoan ma ban so huu hoac duoc cap quyen kiem thu
-(vi du: hMailServer chay tren localhost hoac may ao trong lab noi bo). Doi
-HOST/PORT/tai khoan neu can, nhung khong tro script nay toi mail server cua
-nguoi khac.
-
-Cach dung:
-    python smtp_test.py --count 20 --interval 0.5
-"""
-
-import argparse
 import smtplib
-import time
 from email.mime.text import MIMEText
+import time
+import sys
 
-# ---------------------------------------------------------------------------
-# Cau hinh mac dinh - chinh lai cho dung voi hMailServer cua nhom.
-# ---------------------------------------------------------------------------
-SMTP_HOST = "127.0.0.1"      # hMailServer chay tren may local / VM lab
-SMTP_PORT = 25                # cong SMTP theo mo ta de tai
-SMTP_USER = "tester@lab.local"      # tai khoan da tao san tren hMailServer
-SMTP_PASSWORD = "changeme"          # doi thanh mat khau that cua tai khoan test
-MAIL_FROM = "tester@lab.local"
-MAIL_TO = "receiver@lab.local"      # tai khoan nhan da tao san tren hMailServer
+# ==========================================
+# CẤU HÌNH THÔNG SỐ KẾT NỐI HMAILSERVER
+# ==========================================
+TARGET_IP = "127.0.0.1"  # Địa chỉ IP của Mail Server (hoặc IP VPN khi test qua mạng ảo)
+TARGET_PORT = 25         # Cổng SMTP mặc định
+SENDER = "client@pbl4.local"    # Tài khoản gửi đã cấu hình trên hMailServer
+RECEIVER = "admin@pbl4.local"   # Tài khoản nhận
+EMAIL_COUNT = 100        # Tổng số lượng email muốn bắn liên tục
+DELAY = 0.05             # Độ trễ giữa các lần gửi (giây) để tạo mật độ lưu lượng
 
+def send_smtp_traffic():
+    print(f"[*] Đang khởi tạo kịch bản gửi mail tự động tới mục tiêu: {TARGET_IP}:{TARGET_PORT}")
+    print(f"[*] Người gửi: {SENDER} | Người nhận: {RECEIVER}\n")
+    
+    success_count = 0
 
-def build_message(index: int) -> MIMEText:
-    msg = MIMEText(f"Day la email thu nghiem so {index} tu smtp_test.py, "
-                    f"dung de tao luu luong SMTP cho NIDS quan sat.")
-    msg["Subject"] = f"[PBL4-Test] Email thu nghiem #{index}"
-    msg["From"] = MAIL_FROM
-    msg["To"] = MAIL_TO
-    return msg
+    for i in range(1, EMAIL_COUNT + 1):
+        try:
+            # Soạn nội dung gói tin email đơn giản
+            msg = MIMEText(f"Payload kiểm thử lưu lượng mạng PBL4 - Gói số #{i}")
+            msg['Subject'] = f"PBL4 Traffic Test #{i}"
+            msg['From'] = SENDER
+            msg['To'] = RECEIVER
 
+            # Thiết lập kết nối SMTP không bảo mật tới Server cục bộ
+            server = smtplib.SMTP(TARGET_IP, TARGET_PORT, timeout=3)
+            server.sendmail(SENDER, [RECEIVER], msg.as_string())
+            server.quit()
+            
+            success_count += 1
+            sys.stdout.write(f"\r[+] Đã gửi thành công {success_count}/{EMAIL_COUNT} gói tin SMTP...")
+            sys.stdout.flush()
+            
+            # Nghỉ một nhịp nhỏ để điều chỉnh tốc độ dòng dữ liệu
+            time.sleep(DELAY)
+            
+        except ConnectionRefusedError:
+            print(f"\n\n[!!!] KẾT NỐI BỊ TỪ CHỐI TẠI GÓI TIN SỐ {i}.")
+            print("[✓] Nguyên nhân: Module NIDS đã phát hiện lưu lượng bất thường và Firewall đã tiến hành chặn IP.")
+            break
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "timeout" in error_msg or "10060" in error_msg:
+                print(f"\n\n[!!!] TIMEOUT TẠI GÓI TIN SỐ {i}.")
+                print("[✓] Nguyên nhân: Tường lửa hoặc hệ thống phòng thủ Zero-Trust đã drop các gói tin từ IP này.")
+            else:
+                print(f"\n[!] Lỗi phát sinh ở gói tin {i}: {e}")
+            break
+            
+    print("\n[*] Quá trình tạo lưu lượng mạng đã kết thúc.")
 
-def send_one(index: int, use_auth: bool) -> bool:
-    try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=5) as server:
-            server.ehlo()
-            if use_auth:
-                server.login(SMTP_USER, SMTP_PASSWORD)
-            msg = build_message(index)
-            server.sendmail(MAIL_FROM, [MAIL_TO], msg.as_string())
-        print(f"[+] Da gui email #{index}")
-        return True
-    except smtplib.SMTPException as exc:
-        print(f"[!] Loi khi gui email #{index}: {exc}")
-        return False
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Gui email thu nghiem toi Mail Server noi bo.")
-    parser.add_argument("--count", type=int, default=10, help="So luong email se gui (mac dinh: 10)")
-    parser.add_argument("--interval", type=float, default=1.0,
-                         help="So giay nghi giua cac lan gui (mac dinh: 1.0)")
-    parser.add_argument("--auth", action="store_true",
-                         help="Su dung SMTP AUTH (login) truoc khi gui")
-    args = parser.parse_args()
-
-    print(f"[*] Bat dau gui {args.count} email toi {SMTP_HOST}:{SMTP_PORT} "
-          f"(cach nhau {args.interval}s)...")
-
-    sent = 0
-    for i in range(1, args.count + 1):
-        if send_one(i, use_auth=args.auth):
-            sent += 1
-        time.sleep(args.interval)
-
-    print(f"[*] Hoan tat: {sent}/{args.count} email gui thanh cong.")
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    send_smtp_traffic()
