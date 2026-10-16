@@ -1,57 +1,45 @@
 import mysql.connector
-from mysql.connector import Error
+from mysql.connector import Error, pooling
 
 class Database:
+    _pool = None # Biến tĩnh (class variable) để giữ Pool duy nhất
+
     def __init__(self):
-        # Cấu hình thông tin máy chủ MySQL của bạn
         self.host = 'localhost'
         self.database = 'pbl4_mail_nids'
         self.user = 'root'
         self.password = ''
-        self.connection = None
+        
+        # Chỉ khởi tạo Pool nếu nó chưa tồn tại (Singleton)
+        if Database._pool is None:
+            try:
+                Database._pool = pooling.MySQLConnectionPool(
+                    pool_name="nids_pool",
+                    pool_size=10, # Giữ sẵn 10 kết nối cùng lúc
+                    pool_reset_session=True,
+                    host=self.host,
+                    database=self.database,
+                    user=self.user,
+                    password=self.password
+                )
+                print("Khởi tạo Connection Pool thành công.")
+            except Error as e:
+                print(f"Lỗi khởi tạo Connection Pool: {e}")
 
-    def connect(self):
-        """Hàm thiết lập kết nối đến MySQL"""
+    def get_connection(self):
+        """Lấy một kết nối từ Pool"""
         try:
-            self.connection = mysql.connector.connect(
-                host=self.host,
-                database=self.database,
-                user=self.user,
-                password=self.password
-            )
-            if self.connection.is_connected():
-                print("Đã kết nối thành công tới CSDL:", self.database)
-                return self.connection
+            if Database._pool:
+                return Database._pool.get_connection()
+            return None
         except Error as e:
-            print(f"Lỗi khi kết nối MySQL: {e}")
+            print(f"Lỗi lấy kết nối: {e}")
             return None
 
-    def disconnect(self):
-        """Hàm đóng kết nối an toàn"""
-        if self.connection and self.connection.is_connected():
-            self.connection.close()
-            print("Đã đóng kết nối CSDL.")
-
-
-if __name__ == "__main__":
-    # Khởi tạo đối tượng Database
-    db = Database()
-    
-    # Thử kết nối
-    conn = db.connect()
-    
-    if conn:
-        try:
-            # Lấy thông tin phiên bản MySQL để xác nhận
-            cursor = conn.cursor()
-            cursor.execute("SELECT DATABASE(), VERSION();")
-            record = cursor.fetchone()
-            print(f"Bạn đang dùng Database: {record[0]} - Phiên bản MySQL: {record[1]}")
-            
-            # Đóng con trỏ
-            cursor.close()
-        except Error as e:
-            print("Lỗi truy vấn:", e)
-        finally:
-            # Luôn nhớ ngắt kết nối sau khi dùng xong
-            db.disconnect()
+    def check_db_status(self):
+        """Kiểm tra và cập nhật trạng thái hoạt động của DB"""
+        conn = self.get_connection()
+        if conn and conn.is_connected():
+            conn.close() # Trả lại pool
+            return True
+        return False
