@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Surfaces */
+  --bg: #090c13;
+  --bg-dot: rgba(255, 255, 255, 0.035);
+  --panel: #111726;
+  --panel-alt: #161d2e;
+  --panel-hi: rgba(255, 255, 255, 0.035);
+  --border: #232c40;
+  --border-soft: #1a2133;
+
+  /* Text */
+  --text: #b6c0d3;
+  --text-h: #f2f5fb;
+  --text-dim: #5e6a80;
+
+  /* Brand signal - reserved for identity: active nav, focus rings, primary
+     data series. Never reused for status meaning (that's ok/info/warn/crit). */
+  --brand: #7c7bf2;
+  --brand-bg: rgba(124, 123, 242, 0.14);
+  --brand-border: rgba(124, 123, 242, 0.4);
+
+  /* Status accents - semantic only */
+  --ok: #34d399;
+  --ok-bg: rgba(52, 211, 153, 0.12);
+  --info: #38bdf8;
+  --info-bg: rgba(56, 189, 248, 0.12);
+  --warn: #f5b34d;
+  --warn-bg: rgba(245, 179, 77, 0.12);
+  --crit: #f2496b;
+  --crit-bg: rgba(242, 73, 107, 0.13);
+
+  /* Scale */
+  --radius-sm: 7px;
+  --radius-md: 11px;
+  --radius-lg: 16px;
+  --shadow-panel: 0 1px 0 var(--panel-hi) inset, 0 16px 32px -22px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 1px 0 var(--panel-hi) inset, 0 24px 48px -20px rgba(0, 0, 0, 0.75);
+
+  --sans: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --heading: 'Space Grotesk', var(--sans);
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, monospace;
+
+  font: 14px/1.5 var(--sans);
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(var(--bg-dot) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(180deg, #0b0f18 0%, var(--bg) 320px);
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--heading);
+  color: var(--text-h);
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(124, 123, 242, 0.35);
+  color: var(--text-h);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Thin scrollbars, matched to the dark surfaces */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
