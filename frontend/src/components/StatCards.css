@@ -1,0 +1,11 @@
+.stat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .stat-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
