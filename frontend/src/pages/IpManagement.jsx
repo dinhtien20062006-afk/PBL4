@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import IpTable from '../components/IpTable'
+import IPManagement from '../components/IPManagement'
 import { getBlockedIps } from '../services/api'
 
 // Trang quản lý IP:
@@ -46,6 +47,13 @@ function IpManagement({ rows, onToggleBlock }) {
         </div>
       </div>
       <IpTable rows={rows} onToggleBlock={onToggleBlock} />
+
+      {/* IPManagement: component tự gọi GET /api/blocked-ips + POST
+          /api/firewall/unblock (mục 3 - Quyền), dùng để kiểm thử liên kết
+          với netsh advfirewall thật trên Windows. */}
+      <div style={{ marginTop: 24 }}>
+        <IPManagement />
+      </div>
     </>
   )
 }

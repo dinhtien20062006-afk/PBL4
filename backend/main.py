@@ -1,8 +1,10 @@
 import random
+import subprocess
 from datetime import datetime, timezone
 import pymysql
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -55,6 +57,40 @@ def fetch_mysql_blocked_ips():
     except Exception as e:
         print(f"[!] Chưa đọc được MySQL (đang dùng RAM tạm): {e}")
     return mysql_ips
+
+
+class UnblockRequest(BaseModel):
+    ip: str
+
+
+def _firewall_rule_name(ip: str) -> str:
+    # Quy ước đặt tên rule khi NIDS/Zero-Trust Enforcer BLOCK một IP (dự kiến
+    # dùng chung ở bước "block", ví dụ:
+    #   netsh advfirewall firewall add rule name="NIDS_BLOCK_<ip>" dir=in
+    #   action=block remoteip=<ip>
+    # Bước unblock bên dưới xoá đúng rule có tên này.
+    return f"NIDS_BLOCK_{ip}"
+
+
+def unblock_windows_firewall(ip: str) -> tuple[bool, str]:
+    """Gỡ rule chặn IP khỏi Windows Defender Firewall qua netsh advfirewall.
+
+    Chỉ hoạt động trên Windows với quyền Administrator. Trên môi trường khác
+    (Linux/macOS, hoặc không đủ quyền) sẽ thất bại êm — không chặn luồng xử
+    lý DB/UI phía trên.
+    """
+    rule_name = _firewall_rule_name(ip)
+    try:
+        result = subprocess.run(
+            ["netsh", "advfirewall", "firewall", "delete", "rule", f"name={rule_name}"],
+            capture_output=True, text=True, timeout=5, check=False,
+        )
+        ok = result.returncode == 0
+        return ok, (result.stdout or result.stderr or "").strip()
+    except FileNotFoundError:
+        return False, "netsh không khả dụng (không phải Windows)"
+    except Exception as e:
+        return False, str(e)
 
 
 def _random_ip() -> str:
@@ -163,3 +199,45 @@ def unblock_ip(ip: str):
             row["blocked"] = False
             return row
     return {"ip": ip, "blocked": False}
+
+
+@app.post("/api/firewall/unblock")
+def firewall_unblock(req: UnblockRequest):
+    """Giải phóng một IP khỏi Windows Defender Firewall (mục 3 - Quyền).
+
+    Dùng cho nút "Unblock" trong IPManagement.jsx. Khác với
+    /api/ips/{ip}/unblock (chỉ cập nhật trạng thái UI), route này còn cố
+    gắng gọi netsh advfirewall thật để gỡ rule — nên cần Backend chạy với
+    quyền Administrator trên Windows mới có tác dụng thực sự.
+    """
+    ip = req.ip
+
+    # 1) Xoá khỏi bảng blocked_ips trong MySQL (để /api/alerts/recent và
+    #    /api/blocked-ips không còn liệt kê IP này nữa).
+    db_ok = True
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM blocked_ips WHERE ip_address = %s", (ip,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        db_ok = False
+        print(f"[!] /api/firewall/unblock: chưa xoá được trong MySQL: {e}")
+
+    # 2) Gỡ rule thật trên Windows Defender Firewall.
+    firewall_ok, firewall_msg = unblock_windows_firewall(ip)
+    if not firewall_ok:
+        print(f"[!] /api/firewall/unblock: netsh không gỡ được rule cho {ip}: {firewall_msg}")
+
+    # 3) Đồng bộ trạng thái "blocked" trong RAM (_ips_db) cho các route khác.
+    for row in _ips_db:
+        if row["ip"] == ip:
+            row["blocked"] = False
+
+    return {
+        "ip": ip,
+        "blocked": False,
+        "db_updated": db_ok,
+        "firewall_updated": firewall_ok,
+    }

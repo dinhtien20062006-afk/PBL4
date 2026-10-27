@@ -40,4 +40,15 @@ export async function unblockIpAddress(ip) {
   return data
 }
 
+/**
+ * POST /api/firewall/unblock  { ip }
+ * Dùng cho nút "Unblock" trong IPManagement.jsx (mục 3). Khác với
+ * unblockIpAddress() ở trên (chỉ đổi trạng thái UI), route này còn yêu cầu
+ * Backend gọi netsh advfirewall thật để gỡ IP khỏi Windows Defender Firewall.
+ */
+export async function unblockIpFirewall(ip) {
+  const { data } = await apiClient.post('/api/firewall/unblock', { ip })
+  return data
+}
+
 export default apiClient
