@@ -20,15 +20,38 @@ export async function fetchTrafficSummary() {
   return data
 }
 
+export async function fetchRecentLogs(limit = 20) {
+  // GET /api/logs/recent -> N gói tin gần nhất NIDS Engine vừa bắt được
+  // (IP nguồn, IP đích, cổng, giao thức, thời điểm). Dùng cho TrafficTable.jsx,
+  // polling bằng setInterval cho tới khi thay bằng WebSocket (connectTrafficSocket).
+  const { data } = await api.get('/api/logs/recent', { params: { limit } })
+  return data
+}
+
 export async function fetchAlerts() {
   // GET /api/alerts -> danh sách cảnh báo NIDS (mới nhất trước)
   const { data } = await api.get('/api/alerts')
   return data
 }
 
+export async function fetchRecentAlerts(limit = 20) {
+  // GET /api/alerts/recent -> dùng riêng cho AlertsTable.jsx (mục 2, phần
+  // Quyền phụ trách). Trả về mảng { id, ip, type, port, sev, time } giống
+  // SEED_ALERTS trong data/mockData.js. Khi backend (Tiên) chưa dựng route
+  // này, AlertsTable.jsx tự rơi về dữ liệu mẫu, không chặn UI.
+  const { data } = await api.get('/api/alerts/recent', { params: { limit } })
+  return data
+}
+
 export async function fetchIps() {
   // GET /api/ips -> danh sách IP đang theo dõi + trạng thái block
   const { data } = await api.get('/api/ips')
+  return data
+}
+
+export async function fetchBlockedIps() {
+  // GET /api/blocked-ips -> chỉ những IP đã bị Zero-Trust Enforcer chặn
+  const { data } = await api.get('/api/blocked-ips')
   return data
 }
 

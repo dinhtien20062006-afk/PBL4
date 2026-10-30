@@ -1,5 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import AlertFeed from '../components/AlertFeed'
+import AlertsTable from '../components/AlertsTable'
 import './Alerts.css'
 
 function Alerts({ alerts, blockedIps, onBlock, onRefresh }) {
@@ -12,6 +13,9 @@ function Alerts({ alerts, blockedIps, onBlock, onRefresh }) {
         </button>
       </div>
       <AlertFeed alerts={alerts} blockedIps={blockedIps} onBlock={onBlock} />
+      {/* AlertsTable: tự gọi GET /api/alerts/recent, dùng để kiểm thử liên kết
+          (integration test) với brute_force.py + NIDS Engine của Tiên. */}
+      <AlertsTable />
     </div>
   )
 }

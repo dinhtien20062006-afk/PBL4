@@ -1,5 +1,4 @@
-import { useState } from 'react'
-<<<<<<< HEAD
+import { useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import Dashboard from './pages/Dashboard'
@@ -9,6 +8,7 @@ import IpManagement from './pages/IpManagement'
 import AttackLab from './pages/AttackLab'
 import Config from './pages/Config'
 import { SEED_ALERTS, SEED_IPS, SEED_THRESHOLDS } from './data/mockData'
+import { fetchIps, blockIp, unblockIp } from './api/client'
 import './App.css'
 
 // Toàn bộ state "nguồn sự thật" (alerts, danh sách IP, ngưỡng cấu hình)
@@ -21,13 +21,42 @@ function App() {
   const [alerts, setAlerts] = useState(SEED_ALERTS)
   const [ips, setIps] = useState(SEED_IPS)
   const [thresholds, setThresholds] = useState(SEED_THRESHOLDS)
+  const [apiOnline, setApiOnline] = useState(false)
+
+  // Nạp danh sách IP thật từ Backend khi App mount. Nếu FastAPI chưa chạy
+  // (ví dụ đang phát triển UI đơn lẻ), giữ nguyên dữ liệu mẫu (SEED_IPS).
+  useEffect(() => {
+    let cancelled = false
+    fetchIps()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setIps(data)
+          setApiOnline(true)
+        }
+      })
+      .catch(() => {
+        // Backend chưa chạy / lỗi mạng -> tiếp tục dùng mock data, không chặn UI.
+        setApiOnline(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const blockedIps = new Set(ips.filter((r) => r.blocked).map((r) => r.ip))
 
-  // TODO(backend): gọi blockIp(ip) trong src/api/client.js, cập nhật state
-  // sau khi API xác nhận thay vì cập nhật lạc quan như hiện tại.
+  // Cập nhật lạc quan trên UI trước, sau đó đồng bộ với Backend (Zero-Trust
+  // Enforcer sẽ thêm/gỡ rule netsh advfirewall thật). Nếu API lỗi, coi như
+  // đang chạy chế độ demo (mock) và bỏ qua.
   function toggleBlock(ip) {
     setIps((prev) => prev.map((r) => (r.ip === ip ? { ...r, blocked: !r.blocked } : r)))
+    if (!apiOnline) return
+    const row = ips.find((r) => r.ip === ip)
+    const action = row?.blocked ? unblockIp : blockIp
+    action(ip).catch(() => {
+      // Rollback nếu Backend từ chối / lỗi.
+      setIps((prev) => prev.map((r) => (r.ip === ip ? { ...r, blocked: !r.blocked } : r)))
+    })
   }
 
   function blockFromAlert(alert) {
@@ -92,125 +121,6 @@ function App() {
         <main className="app-content">{renderView()}</main>
       </div>
     </div>
-=======
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
-
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
->>>>>>> bde31bda75a189f9c7f3216bde6b1fef4689fc3b
   )
 }
 

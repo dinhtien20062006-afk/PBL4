@@ -2,13 +2,14 @@ import TrafficChart from '../components/TrafficChart'
 import ProtocolBreakdown from '../components/ProtocolBreakdown'
 import PortActivity from '../components/PortActivity'
 import TopSources from '../components/TopSources'
-import PacketTicker from '../components/PacketTicker'
+import TrafficTable from '../components/TrafficTable'
 import { makeMockTopSources } from '../data/mockData'
 import './Traffic.css'
 
 // Trang giám sát lưu lượng đầy đủ — dành riêng cho NIDS Engine.
 // Bố cục: biểu đồ real-time tổng (rộng, cao) → 2 biểu đồ phân tích
-// (giao thức, cổng Mail) → top nguồn traffic + packet feed thô.
+// (giao thức, cổng Mail) → top nguồn traffic + bảng lưu lượng (polling
+// GET /api/logs/recent, xem TrafficTable.jsx).
 function Traffic() {
   const topSources = makeMockTopSources()
 
@@ -21,10 +22,9 @@ function Traffic() {
         <PortActivity />
       </div>
 
-      <div className="traffic-analysis-row">
-        <TopSources rows={topSources} />
-        <PacketTicker />
-      </div>
+      <TopSources rows={topSources} />
+
+      <TrafficTable />
     </div>
   )
 }

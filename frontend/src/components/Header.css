@@ -3,9 +3,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 28px;
+  padding: 19px 30px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: rgba(9, 12, 19, 0.75);
+  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: 5;
@@ -19,7 +20,7 @@
 }
 
 .header-title {
-  font-size: 17px;
+  font-size: 17.5px;
   white-space: nowrap;
 }
 
@@ -31,9 +32,9 @@
   font-weight: 600;
   color: var(--ok);
   background: var(--ok-bg);
-  border: 1px solid rgba(53, 201, 143, 0.25);
+  border: 1px solid rgba(52, 211, 153, 0.28);
   border-radius: 999px;
-  padding: 4px 10px 4px 8px;
+  padding: 4px 11px 4px 9px;
   white-space: nowrap;
 }
 
@@ -54,10 +55,15 @@
   gap: 8px;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 7px 12px;
+  border-radius: 999px;
+  padding: 8px 14px;
   color: var(--text-dim);
   width: 260px;
+  transition: border-color 0.15s ease;
+}
+
+.header-search:focus-within {
+  border-color: var(--brand-border);
 }
 
 .header-search input {
@@ -78,17 +84,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 7px;
+  width: 33px;
+  height: 33px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--panel);
   color: var(--text-dim);
   cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .header-icon-btn:hover {
-  color: var(--text);
+  color: var(--text-h);
+  border-color: var(--text-dim);
 }
 
 .header-icon-dot {
@@ -99,6 +107,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--crit);
+  box-shadow: 0 0 0 2px var(--panel);
 }
 
 .header-clock {
@@ -106,6 +115,8 @@
   flex-direction: column;
   align-items: flex-end;
   line-height: 1.25;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
 }
 
 .header-clock-time {

@@ -1,5 +1,4 @@
-import { Gauge, Siren, Ban, Clock } from 'lucide-react'
-import StatCard from '../components/StatCard'
+import StatCards from '../components/StatCards'
 import TrafficChart from '../components/TrafficChart'
 import AlertFeed from '../components/AlertFeed'
 import IpTable from '../components/IpTable'
@@ -10,20 +9,14 @@ import './Dashboard.css'
 function Dashboard({ alerts, ips, blockedIps, onBlockFromAlert, onToggleBlock }) {
   const blockedCount = ips.filter((r) => r.blocked).length
 
-  const stats = [
-    { icon: Gauge, label: 'Gói tin / giây', value: '58', delta: '+4.2%', tone: 'info' },
-    { icon: Siren, label: 'Cảnh báo đang mở', value: String(alerts.length), tone: 'warn' },
-    { icon: Ban, label: 'IP đã chặn', value: String(blockedCount), tone: 'crit' },
-    { icon: Clock, label: 'Uptime engine', value: '04:12:37', tone: 'ok' },
-  ]
-
   return (
     <>
-      <div className="stat-grid">
-        {stats.map((s) => (
-          <StatCard key={s.label} {...s} />
-        ))}
-      </div>
+      <StatCards
+        trafficPerSecond={58}
+        trafficDelta="+4.2%"
+        blockedCount={blockedCount}
+        alertsCount={alerts.length}
+      />
 
       <div className="chart-row">
         <TrafficChart windowSize={30} />

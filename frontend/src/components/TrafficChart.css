@@ -1,8 +1,9 @@
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  padding: 18px 20px;
 }
 
 .panel-header {
@@ -10,11 +11,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .panel-header h3 {
-  font-size: 14px;
+  font-size: 14.5px;
+  letter-spacing: -0.005em;
 }
 
 .panel-sub {
