@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from routers.logs import router as logs_router 
 from database import Database
+from routers import alerts
+app.include_router(alerts.router)
 
 app = FastAPI(
     title="PBL4 Mail NIDS API",
