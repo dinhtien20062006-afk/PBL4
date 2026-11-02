@@ -1,15 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
-from app.database import Database
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models import TrafficLog
 
-# Khởi tạo Router cho Logs
 router = APIRouter(
     prefix="/api/logs",
     tags=["Traffic Logs"]
 )
 
-# Khai báo cấu trúc JSON (Schema) khi NIDS gửi log lên
 class TrafficLogCreate(BaseModel):
     source_ip: str
     dest_ip: str
@@ -18,63 +18,27 @@ class TrafficLogCreate(BaseModel):
     packet_size: Optional[int] = None
     status: Optional[str] = "Normal"
 
-# ==========================================
-# 1. API MOCKUP
-# ==========================================
 @router.get("/")
-def get_logs_mockup():
-    """Mockup API trả về danh sách log mẫu cho Frontend"""
-    return {
-        "status": "success",
-        "data": [
-            {"id": 1, "source_ip": "192.168.1.10", "dest_ip": "10.0.0.5", "port": 80, "protocol": "TCP", "status": "Normal"},
-            {"id": 2, "source_ip": "192.168.1.100", "dest_ip": "10.0.0.5", "port": 443, "protocol": "TCP", "status": "Alert"}
-        ]
-    }
+def get_all_logs(limit: int = 100, db: Session = Depends(get_db)):
+    """Lấy danh sách log thực tế từ CSDL MySQL"""
+    logs = db.query(TrafficLog).order_by(TrafficLog.timestamp.desc()).limit(limit).all()
+    return {"status": "success", "data": logs}
 
-# ==========================================
-# 2. API THỰC TẾ (Đã kết nối Database)
-# ==========================================
 @router.post("/ingest")
-def ingest_log(log: TrafficLogCreate):
-    """Nhận dữ liệu gói tin từ NIDS Engine và lưu vào MySQL"""
-    db = Database()
-    conn = db.get_connection()
-    if not conn:
-        raise HTTPException(status_code=500, detail="Database error")
-    
+def ingest_log(log: TrafficLogCreate, db: Session = Depends(get_db)):
+    """Nhận dữ liệu gói tin từ NIDS Engine và lưu vào MySQL bằng ORM"""
     try:
-        cursor = conn.cursor()
-        query = """
-            INSERT INTO traffic_logs (source_ip, dest_ip, port, protocol, packet_size, status)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        values = (log.source_ip, log.dest_ip, log.port, log.protocol, log.packet_size, log.status)
-        cursor.execute(query, values)
-        conn.commit() # Xác nhận lưu vào CSDL
-        return {"status": "success", "message": "Đã lưu log", "log_id": cursor.lastrowid}
+        new_log = TrafficLog(**log.dict()) 
+        db.add(new_log)
+        db.commit()
+        db.refresh(new_log)
+        return {"status": "success", "message": "Đã lưu log", "log_id": new_log.id}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        conn.close() # Rất quan trọng: Trả kết nối về Pool
 
 @router.get("/recent")
-def get_recent_logs(limit: int = 50):
+def get_recent_logs(limit: int = 50, db: Session = Depends(get_db)):
     """Trả về danh sách gói tin mới nhất (dùng cho realtime Dashboard)"""
-    db = Database()
-    conn = db.get_connection()
-    if not conn:
-        raise HTTPException(status_code=500, detail="Database error")
-    
-    try:
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM traffic_logs ORDER BY timestamp DESC LIMIT %s"
-        cursor.execute(query, (limit,))
-        data = cursor.fetchall()
-        return {"status": "success", "total": len(data), "data": data}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        conn.close()
+    logs = db.query(TrafficLog).order_by(TrafficLog.timestamp.desc()).limit(limit).all()
+    return {"status": "success", "total": len(logs), "data": logs}

@@ -1,45 +1,39 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 import mysql.connector
-from mysql.connector import Error, pooling
 
+# Cấu hình chuỗi kết nối SQLAlchemy (dùng driver mysqlconnector)
+SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:@localhost:3306/pbl4_mail_nids"
+
+# Khởi tạo Engine (tương tự như Pool, SQLAlchemy tự quản lý Connection Pool)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_size=10,        # Giữ sẵn 10 kết nối cùng lúc (giống code cũ)
+    max_overflow=20,     # Số kết nối tối đa có thể vượt quá pool_size khi quá tải
+    pool_pre_ping=True   # Kiểm tra kết nối trước khi dùng để tránh lỗi đứt kết nối
+)
+
+# Tạo class Session để tương tác với DB
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class cho các Models kế thừa
+Base = declarative_base()
+
+# Dependency để lấy database session cho các FastAPI Router
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close() # Trả kết nối về lại Pool
+
+# Giữ lại hàm check_db_status để API Health Check trong main.py vẫn hoạt động
 class Database:
-    _pool = None # Biến tĩnh (class variable) để giữ Pool duy nhất
-
-    def __init__(self):
-        self.host = 'localhost'
-        self.database = 'pbl4_mail_nids'
-        self.user = 'root'
-        self.password = ''
-        
-        # Chỉ khởi tạo Pool nếu nó chưa tồn tại (Singleton)
-        if Database._pool is None:
-            try:
-                Database._pool = pooling.MySQLConnectionPool(
-                    pool_name="nids_pool",
-                    pool_size=10, # Giữ sẵn 10 kết nối cùng lúc
-                    pool_reset_session=True,
-                    host=self.host,
-                    database=self.database,
-                    user=self.user,
-                    password=self.password
-                )
-                print("Khởi tạo Connection Pool thành công.")
-            except Error as e:
-                print(f"Lỗi khởi tạo Connection Pool: {e}")
-
-    def get_connection(self):
-        """Lấy một kết nối từ Pool"""
-        try:
-            if Database._pool:
-                return Database._pool.get_connection()
-            return None
-        except Error as e:
-            print(f"Lỗi lấy kết nối: {e}")
-            return None
-
     def check_db_status(self):
-        """Kiểm tra và cập nhật trạng thái hoạt động của DB"""
-        conn = self.get_connection()
-        if conn and conn.is_connected():
-            conn.close() # Trả lại pool
-            return True
-        return False
+        try:
+            # Thử tạo một kết nối ngắn để kiểm tra
+            with engine.connect() as conn:
+                return True
+        except Exception as e:
+            print(f"Lỗi kiểm tra trạng thái CSDL: {e}")
+            return False
