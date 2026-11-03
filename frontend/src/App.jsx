@@ -80,7 +80,14 @@ function App() {
         return <Traffic />
       case 'alerts':
         return (
-          <Alerts alerts={alerts} blockedIps={blockedIps} onBlock={blockFromAlert} onRefresh={refreshAll} />
+          <Alerts
+            alerts={alerts}
+            blockedIps={blockedIps}
+            onBlock={blockFromAlert}
+            onRefresh={refreshAll}
+            loading={alertsQ.loading}
+            offline={Boolean(alertsQ.error)}
+          />
         )
       case 'ips':
         return (

@@ -1,17 +1,17 @@
-import { RefreshCw } from 'lucide-react'
-import AlertFeed from '../components/AlertFeed'
+import AlertCenter from '../components/AlertCenter'
 import './Alerts.css'
 
-function Alerts({ alerts, blockedIps, onBlock, onRefresh }) {
+function Alerts({ alerts, blockedIps, onBlock, onRefresh, loading, offline }) {
   return (
     <div className="alerts-page">
-      <div className="alerts-page-toolbar">
-        <button type="button" className="alerts-refresh-btn" onClick={onRefresh}>
-          <RefreshCw size={14} strokeWidth={2} />
-          Làm mới
-        </button>
-      </div>
-      <AlertFeed alerts={alerts} blockedIps={blockedIps} onBlock={onBlock} />
+      <AlertCenter
+        alerts={alerts}
+        blockedIps={blockedIps}
+        onBlock={onBlock}
+        onRefresh={onRefresh}
+        loading={loading}
+        connection={offline ? 'offline' : 'polling'}
+      />
     </div>
   )
 }

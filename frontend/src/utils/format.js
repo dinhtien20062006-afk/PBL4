@@ -27,6 +27,7 @@ export function mapAlert(a) {
     port: a.port ?? '—',
     sev: SEV[String(a.severity || '').toLowerCase()] || 'low',
     time: timeAgo(a.created_at),
+    createdAt: a.created_at,
   }
 }
 

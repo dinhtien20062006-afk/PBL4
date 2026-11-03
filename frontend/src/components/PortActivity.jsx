@@ -12,7 +12,6 @@ import './PortActivity.css'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip)
 
-// TODO(backend): thay bằng dữ liệu từ GET /api/traffic/summary (port_activity)
 // Tập trung vào 2 cổng Mail theo đúng kịch bản NIDS: SMTP 25, POP3 110.
 function PortActivity() {
   const { data: rows } = usePolling(getPorts, 5000)

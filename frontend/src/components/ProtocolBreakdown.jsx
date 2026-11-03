@@ -8,7 +8,6 @@ ChartJS.register(ArcElement, Tooltip)
 
 const COLORS = { TCP: '#3aa8e0', UDP: '#35c98f', ICMP: '#e0a83a' }
 
-// TODO(backend): thay bằng dữ liệu từ GET /api/traffic/summary (protocol_breakdown)
 function ProtocolBreakdown() {
   const { data: rows } = usePolling(getProtocols, 5000)
   const split = (rows || []).map((r) => ({ ...r, color: COLORS[r.label] || '#5b6779' }))

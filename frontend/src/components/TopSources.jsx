@@ -1,6 +1,5 @@
 import './TopSources.css'
 
-// TODO(backend): thay bằng GET /api/traffic/top-sources
 function TopSources({ rows }) {
   const max = Math.max(...rows.map((r) => r.packets), 1)
 
