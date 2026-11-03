@@ -1,14 +1,14 @@
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+from typing import Optional
 from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.models import TrafficLog
 
-router = APIRouter(prefix="/api/logs", tags=["Traffic Logs"])
-
+router = APIRouter(
+    prefix="/api/logs",
+    tags=["Traffic Logs"]
+)
 
 class TrafficLogCreate(BaseModel):
     source_ip: str
@@ -18,31 +18,17 @@ class TrafficLogCreate(BaseModel):
     packet_size: Optional[int] = None
     status: Optional[str] = "Normal"
 
-
-def to_dict(l: TrafficLog) -> dict:
-    return {
-        "id": l.id,
-        "timestamp": l.timestamp.isoformat() if l.timestamp else None,
-        "source_ip": l.source_ip,
-        "dest_ip": l.dest_ip,
-        "port": l.port,
-        "protocol": l.protocol,
-        "packet_size": l.packet_size,
-        "status": l.status,
-    }
-
-
-@router.get("")
+@router.get("/")
 def get_all_logs(limit: int = 100, db: Session = Depends(get_db)):
-    logs = db.query(TrafficLog).order_by(TrafficLog.timestamp.desc(), TrafficLog.id.desc()).limit(limit).all()
-    return {"status": "success", "total": len(logs), "data": [to_dict(l) for l in logs]}
+    """Lấy danh sách log thực tế từ CSDL MySQL"""
+    logs = db.query(TrafficLog).order_by(TrafficLog.timestamp.desc()).limit(limit).all()
+    return {"status": "success", "data": logs}
 
-
-@router.post("/ingest")
+@router.post("/traffic")
 def ingest_log(log: TrafficLogCreate, db: Session = Depends(get_db)):
-    """Nhận gói tin từ NIDS Engine và lưu vào MySQL."""
+    """Nhận dữ liệu gói tin từ NIDS Engine và lưu vào MySQL bằng ORM"""
     try:
-        new_log = TrafficLog(**log.model_dump())
+        new_log = TrafficLog(**log.model_dump()) 
         db.add(new_log)
         db.commit()
         db.refresh(new_log)
@@ -51,8 +37,8 @@ def ingest_log(log: TrafficLogCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/recent")
 def get_recent_logs(limit: int = 50, db: Session = Depends(get_db)):
-    logs = db.query(TrafficLog).order_by(TrafficLog.timestamp.desc(), TrafficLog.id.desc()).limit(limit).all()
-    return {"status": "success", "total": len(logs), "data": [to_dict(l) for l in logs]}
+    """Trả về danh sách gói tin mới nhất (dùng cho realtime Dashboard)"""
+    logs = db.query(TrafficLog).order_by(TrafficLog.timestamp.desc()).limit(limit).all()
+    return {"status": "success", "total": len(logs), "data": logs}
