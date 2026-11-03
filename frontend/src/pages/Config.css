@@ -1,0 +1,75 @@
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin-bottom: 4px;
+}
+
+.field-hint {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-bottom: 7px;
+}
+
+.field input {
+  width: 100%;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 7px;
+  padding: 9px 11px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.field input:focus {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+
+.config-save-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.config-save-btn {
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 7px;
+  border: 1px solid rgba(53, 201, 143, 0.35);
+  background: var(--ok-bg);
+  color: var(--ok);
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.config-save-btn:hover {
+  border-color: var(--ok);
+}
+
+.config-toast {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ok);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.config-toast.is-show {
+  opacity: 1;
+}
+
+@media (max-width: 700px) {
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+}
