@@ -1,0 +1,142 @@
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 14px;
+  gap: 28px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px;
+}
+
+.sidebar-brand-icon {
+  color: var(--info);
+  flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.sidebar-brand-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-h);
+  letter-spacing: 0.02em;
+}
+
+.sidebar-brand-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--panel-alt);
+  color: var(--text);
+}
+
+.sidebar-nav-item.is-active {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.sidebar-nav-label {
+  flex: 1;
+}
+
+.sidebar-nav-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  background: var(--crit);
+  color: #fff;
+  border-radius: 999px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.sidebar-engine-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-alt);
+}
+
+.sidebar-engine-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-h);
+}
+
+.sidebar-engine-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(53, 201, 143, 0.6);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(53, 201, 143, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(53, 201, 143, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(53, 201, 143, 0); }
+}
+
+@media (max-width: 900px) {
+  .sidebar-brand-text,
+  .sidebar-nav-label,
+  .sidebar-nav-badge,
+  .sidebar-footer {
+    display: none;
+  }
+  .sidebar-nav-item {
+    justify-content: center;
+  }
+}

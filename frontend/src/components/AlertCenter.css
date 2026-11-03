@@ -1,0 +1,71 @@
+.alert-center-container {
+    padding: 20px;
+    background-color: #1a1d24;
+    color: #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.alert-title {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.alerts-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.alerts-table th, .alerts-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #2d3748;
+}
+
+.alerts-table th {
+    background-color: #2d3748;
+    color: #a0aec0;
+    font-weight: 600;
+}
+
+.alert-row:hover {
+    background-color: #2a303c;
+}
+
+.alert-ip {
+    color: #fc8181;
+    font-weight: bold;
+}
+
+.btn-block {
+    background-color: #e53e3e;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-block:hover {
+    background-color: #c53030;
+}
+
+/* Hiệu ứng nhấp nháy đỏ khẩn cấp cho Toast WebSocket */
+@keyframes pulseRed {
+    0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(255, 59, 48, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+}
+
+.blinking-red-toast {
+    background-color: #e53e3e !important;
+    animation: pulseRed 1.5s infinite;
+    border: 2px solid #fff;
+    color: white !important;
+}
