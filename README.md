@@ -4,24 +4,23 @@ Dashboard lấy **dữ liệu thật từ MySQL**: Firewall Blacklist, Cảnh b�
 
 ```
 PBL4-NIDS/
-├── backend/            FastAPI (Giàu)  -> app/, routers/, MySQL/database.sql
+├── backend/            FastAPI (Giàu)   app/, routers/, MySQL/database.sql
 ├── frontend/           React + Vite + Tailwind (Quyền)
 ├── nids_engine/        sniffer.py + worker.py (bắt gói tin thật -> MySQL)
 └── attack_scripts/     placeholder kiểm thử
 ```
 
 ## Yêu cầu
-Python 3.10+, Node.js 18+, MySQL 8 / MariaDB (XAMPP, MySQL Workbench... đều được).
+Python 3.10+, Node.js 18+, MySQL 8 hoặc MariaDB (XAMPP, MySQL Workbench… đều được).
 
 ## 1. Tạo database + dữ liệu mẫu
-Chạy file `backend/MySQL/database.sql` (tự DROP/CREATE database `pbl4_mail_nids`, tạo 6 bảng và nạp dữ liệu mẫu).
-
-Dòng lệnh:
 ```
 mysql -u root -p --default-character-set=utf8mb4 < backend/MySQL/database.sql
 ```
-Hoặc dùng Workbench/phpMyAdmin: mở file -> Execute (file đã có `SET NAMES utf8mb4`).
-Kiểm tra: `SELECT * FROM blocked_ips;` -> 6 dòng (5 `Blocked`, 1 `Unblocked`).
+Hoặc Workbench / phpMyAdmin: mở `backend/MySQL/database.sql` -> Execute.
+File tự DROP/CREATE database `pbl4_mail_nids`, tạo 6 bảng và nạp dữ liệu mẫu (500 traffic_logs, 6 alerts, 6 blocked_ips).
+
+Kiểm tra: `SELECT ip_address, reason, status FROM blocked_ips;` -> 5 dòng `Blocked`, 1 dòng `Unblocked`.
 
 ## 2. Chạy Backend (cổng 8000)
 ```
@@ -29,46 +28,56 @@ cd backend
 python -m venv venv
 venv\Scripts\activate            (Linux/Mac: source venv/bin/activate)
 pip install -r ../requirements.txt
-copy .env.example .env           (Linux/Mac: cp .env.example .env)   # sửa DB_PASSWORD nếu MySQL có mật khẩu
+copy .env.example .env           (Linux/Mac: cp .env.example .env)
+```
+Mở `backend/.env`, điền `DB_PASSWORD` nếu MySQL của bạn có mật khẩu (XAMPP mặc định để trống).
+```
 uvicorn app.main:app --reload --port 8000
 ```
-Kiểm tra: http://127.0.0.1:8000/ phải có `"database_connected": true`
-Swagger: http://127.0.0.1:8000/docs — thử http://127.0.0.1:8000/api/blocked-ips
+Kiểm tra: http://127.0.0.1:8000/ phải có `"database_connected": true`.
+Swagger: http://127.0.0.1:8000/docs — thử `GET /api/blocked-ips`.
 
-## 3. Chạy Frontend (cổng 5173)
+## 3. Chạy Frontend (cổng 3000)
 ```
 cd frontend
 npm install
 npm run dev
 ```
-Mở http://localhost:5173 -> menu **"IP bị chặn"** -> bảng **Firewall Blacklist** hiển thị đúng các dòng `status='Blocked'` trong MySQL.
-Nút **Bỏ chặn / Unblock** gọi `POST /api/blocked-ips/unblock` và cập nhật `status='Unblocked'`, `unblocked_at` trong DB.
+Mở http://localhost:3000 -> menu **"IP bị chặn"** -> bảng **Firewall Blacklist** hiển thị đúng các dòng `status='Blocked'` trong MySQL.
 
-(Backend ở địa chỉ khác: copy `frontend/.env.example` thành `.env` và sửa `VITE_API_BASE_URL`.)
+- **Bỏ chặn / Unblock**: `POST /api/blocked-ips/unblock` -> DB đổi `status='Unblocked'`, ghi `unblocked_at`.
+- **Chặn IP** (ở trang Cảnh báo / bảng IP): `POST /api/blocked-ips` -> thêm dòng mới vào `blocked_ips`.
+- Dữ liệu tự làm mới mỗi 5 giây.
+
+(Backend ở địa chỉ khác: copy `frontend/.env.example` thành `frontend/.env`, sửa `VITE_API_BASE_URL`.)
 
 ## 4. (Tuỳ chọn) Ghi gói tin thật vào MySQL
-Backend phải đang chạy. Windows cần cài Npcap, chạy terminal bằng quyền Administrator:
+Backend phải đang chạy. Windows cần cài Npcap và mở terminal bằng quyền Administrator:
 ```
-python nids_engine/sniffer.py 200
+pip install -r requirements.txt
+cd nids_engine
+python sniffer.py
 ```
-Các gói tin mới sẽ xuất hiện ở trang Lưu lượng / Packet feed.
+Gói tin mới sẽ xuất hiện ở trang **Lưu lượng** (biểu đồ, Packet feed).
 
 ## API
 | Method | Đường dẫn | Mô tả |
 |---|---|---|
-| GET | /api/blocked-ips | IP đang bị chặn (bảng blocked_ips) |
+| GET | /api/blocked-ips | IP đang bị chặn (blocked_ips, status=Blocked) |
 | POST | /api/blocked-ips | Chặn IP `{ip_address, reason, alert_id}` |
 | POST | /api/blocked-ips/unblock | Gỡ chặn `{ip_address}` |
-| GET | /api/alerts | Danh sách cảnh báo (bảng alerts) |
-| GET | /api/ips | IP đang theo dõi (tổng hợp từ traffic_logs) |
-| GET | /api/stats/{overview,traffic,protocols,ports,top-sources} | Thống kê lưu lượng |
+| GET | /api/alerts | Cảnh báo (kèm cổng, join traffic_logs) |
+| GET | /api/ips | IP đang theo dõi (tổng hợp traffic_logs) |
+| GET | /api/stats/overview, /traffic, /protocols, /ports, /top-sources | Thống kê cho Dashboard |
 | GET | /api/logs/recent | Gói tin mới nhất |
-| POST | /api/logs/ingest | Sniffer gửi gói tin vào DB |
+| POST | /api/logs/ingest | NIDS Engine gửi gói tin vào DB |
 
-## CORS (Bước 3)
-Đã cấu hình `CORSMiddleware` trong `backend/app/main.py`, cho phép origin `localhost/127.0.0.1` cổng 5173 và 3000.
+## Lỗi thường gặp
+- **Bảng báo "Không tải được danh sách IP bị chặn"**: Backend chưa chạy, hoặc `database_connected` = false (sai mật khẩu trong `backend/.env`).
+- **Lỗi CORS**: frontend phải chạy ở cổng 3000 hoặc 5173 (đã cho phép trong `backend/app/main.py`). Cổng khác thì thêm vào `allow_origins`.
+- **Tiếng Việt bị lỗi font trong bảng**: import lại `database.sql` với `--default-character-set=utf8mb4`.
+- **Biểu đồ Lưu lượng trống**: dữ liệu mẫu tính theo giờ lúc import (khoảng 1 giờ gần nhất). Import lại file SQL hoặc chạy sniffer để có dữ liệu mới.
 
-## Lưu ý
-- Dữ liệu mẫu dùng `NOW()` lúc import nên biểu đồ lưu lượng (60 phút gần nhất) có dữ liệu ngay; sau 1 giờ hãy import lại hoặc chạy sniffer.
-- Trang **Cấu hình** (ngưỡng) và **Attack Lab** chưa có bảng MySQL tương ứng nên vẫn là phần giao diện.
-- `users.password_hash` trong dữ liệu mẫu chỉ là chỗ giữ chỗ, chưa có đăng nhập.
+## Chưa dùng dữ liệu SQL
+- Trang **Cấu hình** (ngưỡng phát hiện) vẫn lưu trên giao diện, vì database chưa có bảng cấu hình.
+- Trang **Attack Lab** chỉ là trang thông tin.
