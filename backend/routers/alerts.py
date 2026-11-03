@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Alert
+from app.ws_manager import manager
 
 router = APIRouter(prefix="/api/alerts", tags=["Alerts"])
 
@@ -15,7 +16,7 @@ class AlertCreate(BaseModel):
     severity: Optional[str] = "High"
 
 @router.post("/trigger")
-def trigger_alert(alert: AlertCreate, db: Session = Depends(get_db)):
+async def trigger_alert(alert: AlertCreate, db: Session = Depends(get_db)):
     """API nhận thông tin cảnh báo khi Core NIDS phát hiện dấu hiệu tấn công"""
     try:
         # Hỗ trợ cả Pydantic V1 (dict) và V2 (model_dump)
@@ -24,6 +25,12 @@ def trigger_alert(alert: AlertCreate, db: Session = Depends(get_db)):
         db.add(new_alert)
         db.commit()
         db.refresh(new_alert)
+
+        await manager.broadcast({
+            "type": "new_alert",
+            "data": alert_data
+        })
+        
         return {"status": "success", "message": "Đã ghi nhận cảnh báo", "alert_id": new_alert.id}
     except Exception as e:
         db.rollback()
