@@ -24,11 +24,11 @@ def get_all_logs(limit: int = 100, db: Session = Depends(get_db)):
     logs = db.query(TrafficLog).order_by(TrafficLog.timestamp.desc()).limit(limit).all()
     return {"status": "success", "data": logs}
 
-@router.post("/ingest")
+@router.post("/traffic")
 def ingest_log(log: TrafficLogCreate, db: Session = Depends(get_db)):
     """Nhận dữ liệu gói tin từ NIDS Engine và lưu vào MySQL bằng ORM"""
     try:
-        new_log = TrafficLog(**log.dict()) 
+        new_log = TrafficLog(**log.model_dump()) 
         db.add(new_log)
         db.commit()
         db.refresh(new_log)

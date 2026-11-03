@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
-from app.database import Database
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models import Alert
 
 router = APIRouter(prefix="/api/alerts", tags=["Alerts"])
 
@@ -12,38 +14,23 @@ class AlertCreate(BaseModel):
     source_ip: str
     severity: Optional[str] = "High"
 
-@router.post("/")
-def create_alert(alert: AlertCreate):
-    db = Database()
-    conn = db.get_connection()
-    if not conn:
-        raise HTTPException(status_code=500, detail="Database error")
+@router.post("/trigger")
+def trigger_alert(alert: AlertCreate, db: Session = Depends(get_db)):
+    """API nhận thông tin cảnh báo khi Core NIDS phát hiện dấu hiệu tấn công"""
     try:
-        cursor = conn.cursor()
-        query = """
-            INSERT INTO alerts (rule_id, traffic_log_id, attack_type, source_ip, severity)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        values = (alert.rule_id, alert.traffic_log_id, alert.attack_type, alert.source_ip, alert.severity)
-        cursor.execute(query, values)
-        conn.commit()
-        return {"status": "success", "alert_id": cursor.lastrowid}
-    finally:
-        cursor.close()
-        conn.close()
+        # Hỗ trợ cả Pydantic V1 (dict) và V2 (model_dump)
+        alert_data = alert.model_dump() if hasattr(alert, 'model_dump') else alert.dict()
+        new_alert = Alert(**alert_data)
+        db.add(new_alert)
+        db.commit()
+        db.refresh(new_alert)
+        return {"status": "success", "message": "Đã ghi nhận cảnh báo", "alert_id": new_alert.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/recent")
-def get_recent_alerts(limit: int = 50):
-    db = Database()
-    conn = db.get_connection()
-    if not conn:
-        raise HTTPException(status_code=500, detail="Database error")
-    try:
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM alerts ORDER BY created_at DESC LIMIT %s"
-        cursor.execute(query, (limit,))
-        data = cursor.fetchall()
-        return {"status": "success", "total": len(data), "data": data}
-    finally:
-        cursor.close()
-        conn.close()
+def get_recent_alerts(limit: int = 50, db: Session = Depends(get_db)):
+    """Trả về danh sách cảnh báo mới nhất"""
+    alerts = db.query(Alert).order_by(Alert.created_at.desc()).limit(limit).all()
+    return {"status": "success", "total": len(alerts), "data": alerts}
