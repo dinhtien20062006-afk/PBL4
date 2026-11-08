@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Alert
+from app.models import Alert, TrafficLog
 from app.ws_manager import manager
 
 router = APIRouter(prefix="/api/alerts", tags=["Alerts"])
@@ -36,8 +36,32 @@ async def trigger_alert(alert: AlertCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/recent")
+@router.get("/")
 def get_recent_alerts(limit: int = 50, db: Session = Depends(get_db)):
     """Trả về danh sách cảnh báo mới nhất"""
-    alerts = db.query(Alert).order_by(Alert.created_at.desc()).limit(limit).all()
-    return {"status": "success", "total": len(alerts), "data": alerts}
+    alerts = (
+        db.query(Alert, TrafficLog.port)
+        .outerjoin(TrafficLog, Alert.traffic_log_id == TrafficLog.id)
+        .order_by(Alert.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    data = [
+        {
+            "id": alert.id,
+            "rule_id": alert.rule_id,
+            "traffic_log_id": alert.traffic_log_id,
+            "attack_type": alert.attack_type,
+            "source_ip": alert.source_ip,
+            "severity": alert.severity,
+            "created_at": alert.created_at,
+            "port": port,
+        }
+        for alert, port in alerts
+    ]
+    return {"status": "success", "total": len(data), "data": data}
+
+
+@router.get("/recent")
+def get_recent_alerts_compat(limit: int = 50, db: Session = Depends(get_db)):
+    return get_recent_alerts(limit, db)

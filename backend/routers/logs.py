@@ -37,6 +37,11 @@ def ingest_log(log: TrafficLogCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/ingest")
+def ingest_log_compat(log: TrafficLogCreate, db: Session = Depends(get_db)):
+    return ingest_log(log, db)
+
 @router.get("/recent")
 def get_recent_logs(limit: int = 50, db: Session = Depends(get_db)):
     """Trả về danh sách gói tin mới nhất (dùng cho realtime Dashboard)"""
