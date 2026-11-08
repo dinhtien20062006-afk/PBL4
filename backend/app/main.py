@@ -8,6 +8,7 @@ from routers.logs import router as logs_router
 from routers.alerts import router as alerts_router
 from routers.config import router as config_router
 from routers.blocked_ips import router as blocked_ips_router
+from routers.stats import router as stats_router
 
 # Import Database & WebSocket Manager
 from app.database import Database, SessionLocal
@@ -47,7 +48,12 @@ app = FastAPI(
 # 3. Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,6 +64,7 @@ app.include_router(logs_router)
 app.include_router(alerts_router)
 app.include_router(blocked_ips_router)
 app.include_router(config_router)
+app.include_router(stats_router)
 
 @app.get("/", tags=["Health Check"])
 def health_check():
