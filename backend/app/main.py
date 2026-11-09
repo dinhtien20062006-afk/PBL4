@@ -8,6 +8,7 @@ from routers.logs import router as logs_router
 from routers.alerts import router as alerts_router
 from routers.config import router as config_router
 from routers.blocked_ips import router as blocked_ips_router
+from routers.blocked_ips import unblock_router
 from routers.stats import router as stats_router
 
 # Import Database & WebSocket Manager
@@ -63,6 +64,7 @@ app.add_middleware(
 app.include_router(logs_router)
 app.include_router(alerts_router)
 app.include_router(blocked_ips_router)
+app.include_router(unblock_router)
 app.include_router(config_router)
 app.include_router(stats_router)
 
