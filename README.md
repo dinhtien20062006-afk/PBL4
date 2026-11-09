@@ -37,16 +37,16 @@ uvicorn app.main:app --reload --port 8000
 Kiểm tra: http://127.0.0.1:8000/ phải có `"database_connected": true`.
 Swagger: http://127.0.0.1:8000/docs — thử `GET /api/blocked-ips`.
 
-## 3. Chạy Frontend (cổng 3000)
+## 3. Chạy Frontend (cổng 5173)
 ```
 cd frontend
 npm install
 npm run dev
 ```
-Mở http://localhost:3000 -> menu **"IP bị chặn"** -> bảng **Firewall Blacklist** hiển thị đúng các dòng `status='Blocked'` trong MySQL.
+Mở http://localhost:5173 -> menu **"IP bị chặn"** -> bảng **Firewall Blacklist** hiển thị đúng các dòng `status='Blocked'` trong MySQL.
 
-- **Bỏ chặn / Unblock**: `POST /api/blocked-ips/unblock` -> DB đổi `status='Unblocked'`, ghi `unblocked_at`.
-- **Chặn IP** (ở trang Cảnh báo / bảng IP): `POST /api/blocked-ips` -> thêm dòng mới vào `blocked_ips`.
+- **Bỏ chặn / Unblock**: `POST /api/unblock` (hoặc `POST /api/blocked-ips/unblock`) -> gỡ IP khỏi rule `NIDS_Blacklist_Rule` trong Windows Firewall, cập nhật DB thành `status='0'`, ghi `unblocked_at` và phát WebSocket event `ip_unblocked`. Khi gỡ IP cuối cùng, rule được vô hiệu hóa để tránh `RemoteAddress=Any` vô tình chặn toàn bộ địa chỉ. Backend cần chạy bằng quyền Administrator.
+- **Chặn IP** (ở trang Cảnh báo / bảng IP): `POST /api/blocked-ips` -> tạo/cập nhật rule inbound `NIDS_Blacklist_Rule` trong Windows Firewall và ghi `blocked_ips`. Nếu rule chưa tồn tại, API tự tạo rule. Backend cần chạy bằng quyền Administrator.
 - Dữ liệu tự làm mới mỗi 5 giây.
 
 (Backend ở địa chỉ khác: copy `frontend/.env.example` thành `frontend/.env`, sửa `VITE_API_BASE_URL`.)
@@ -65,7 +65,8 @@ Gói tin mới sẽ xuất hiện ở trang **Lưu lượng** (biểu đồ, Pac
 |---|---|---|
 | GET | /api/blocked-ips | IP đang bị chặn (blocked_ips, status=Blocked) |
 | POST | /api/blocked-ips | Chặn IP `{ip_address, reason, alert_id}` |
-| POST | /api/blocked-ips/unblock | Gỡ chặn `{ip_address}` |
+| POST | /api/unblock | Gỡ IP khỏi Windows Firewall và cập nhật trạng thái DB thành `0` |
+| POST | /api/blocked-ips/unblock | Alias tương thích cho luồng Unblock từ giao diện Web |
 | GET | /api/alerts | Cảnh báo (kèm cổng, join traffic_logs) |
 | GET | /api/ips | IP đang theo dõi (tổng hợp traffic_logs) |
 | GET | /api/stats/overview, /traffic, /protocols, /ports, /top-sources | Thống kê cho Dashboard |
