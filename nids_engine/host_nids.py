@@ -16,8 +16,8 @@ from firewall_manager import block_ip
 BACKEND_URL = "http://192.168.1.20:8000/api/alerts/trigger"
 
 # Cấu hình ngưỡng an toàn (Thresholds) theo đề tài[cite: 1]
-AUTH_FAIL_THRESHOLD = 15   
-SPAM_FAIL_THRESHOLD = 15   
+AUTH_FAIL_THRESHOLD = 25   
+SPAM_FAIL_THRESHOLD = 25   
 
 # Bộ nhớ tạm theo dõi vi phạm theo cơ chế Sliding Window: { ip: [timestamp1, timestamp2, ...] }
 auth_violations = defaultdict(list)
