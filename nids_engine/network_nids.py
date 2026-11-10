@@ -4,6 +4,10 @@ import threading
 import time
 import requests
 
+# Import module tường lửa Zero-Trust đã viết ở Tuần 2 (Tiên)
+from firewall_manager import block_ip
+
+# ==================== CẤU HÌNH HỆ THỐNG ====================
 # Địa chỉ URL Endpoint API tiếp nhận lưu lượng và cảnh báo của Giàu
 # (Cần thay thế '192.168.1.20' bằng IP thực tế trong mạng LAN của máy Giàu)
 TRAFFIC_API_URL = "http://192.168.1.20:8000/api/logs/traffic"
@@ -36,12 +40,9 @@ def packet_callback(packet):
                 # Cờ SYN có giá trị bitwise là 2 (0x02)
                 if tcp_flags & 0x02:
                     syn_counter[ip_src] += 1
-            
-            # Debug log (có thể comment lại nếu lượng packet quá lớn gây tràn terminal)
-            # print(f"[DEBUG] TCP Packet | {ip_src} -> Port {dport} | Flags: {tcp_flags}")
 
 def reset_counter_periodic():
-    """Hàm chạy ngầm định kỳ mỗi 1 giây: Gửi lưu lượng, kiểm tra ngưỡng SYN Flood và reset bộ đếm"""
+    """Hàm chạy ngầm định kỳ mỗi 1 giây: Gửi lưu lượng, kiểm tra ngưỡng SYN Flood và tự động khóa Firewall"""
     while True:
         time.sleep(1)
         
@@ -65,13 +66,21 @@ def reset_counter_periodic():
                 except Exception:
                     pass
         
-        # 2. Xử lý thuật toán phát hiện SYN Flood (Threshold Check)
+        # 2. Xử lý thuật toán phát hiện SYN Flood (Threshold Check & Zero-Trust Enforcement)
         if current_syn:
             for ip, syn_count in current_syn.items():
                 if syn_count > SYN_THRESHOLD:
                     print(f"\n[!] CẢNH BÁO SYN FLOOD: Phát hiện IP {ip} gửi {syn_count} gói SYN/s (Vượt ngưỡng {SYN_THRESHOLD})!")
                     
-                    # Payload cảnh báo gửi sang Backend để lưu DB và đẩy WebSocket Real-time
+                    # --- BƯỚC TỰ ĐỘNG HÓA TƯỜNG LỬA (ZERO-TRUST) ---
+                    print(f"[🛡️ ZERO-TRUST ENFORCER] Đang tự động kích hoạt tường lửa cô lập IP {ip} tại Windows Firewall...")
+                    firewall_success = block_ip(ip)
+                    if firewall_success:
+                        print(f"[+ SUCCESS] IP {ip} đã bị chặn vĩnh viễn/tạm thời tại Windows Defender Firewall (NIDS_Blacklist_Rule).")
+                    else:
+                        print(f"[-] Cảnh báo: Không thể khóa IP {ip} trên Windows Firewall (Hãy kiểm tra quyền Administrator).")
+                    
+                    # --- ĐẨY CẢNH BÁO SANG BACKEND ---
                     alert_payload = {
                         "ip_source": ip,
                         "attack_type": "SYN Flood",
@@ -83,22 +92,20 @@ def reset_counter_periodic():
                             print(f"[+] Đã gửi cảnh báo SYN Flood của IP {ip} lên Backend thành công.")
                     except Exception as e:
                         print(f"[-] Lỗi kết nối API cảnh báo: {e}")
-                    
-                    # (Tùy chọn tự động hóa): Tại đây có thể gọi trực tiếp block_ip(ip) từ firewall_manager 
-                    # để khóa ngay lập tức trên Windows Firewall ở tầng mạng.
 
 def start_network_sniff():
     """Khởi chạy luồng bắt gói tin mạng NIDS"""
     print("[*] Module Network-based NIDS đang lắng nghe trên cổng 25 & 110 (hMailServer)...")
+    print("[*] Cơ chế tự động hóa Firewall Enforcer đã được kích hoạt cho SYN Flood.")
     
     # Khởi chạy luồng định kỳ giải phóng và gửi dữ liệu độc lập (daemon thread)
     t = threading.Thread(target=reset_counter_periodic, daemon=True)
     t.start()
     
     # Hàm sniff của Scapy (store=0 giúp giải phóng RAM khi bắt lượng packet lớn)
-    # Lọc BPF tối ưu ngay từ tầng driver
+    # Lọc BPF tối ưu ngay từ tầng driver[cite: 1]
     sniff(filter="tcp dst port 25 or tcp dst port 110", prn=packet_callback, store=0)
 
 if __name__ == "__main__":
-    # Test độc lập module mạng (Yêu cầu chạy Terminal / VS Code bằng quyền Administrator)[cite: 1, 2]
+    # Test độc lập module mạng (Yêu cầu chạy Terminal / VS Code bằng quyền Administrator)[cite: 1]
     start_network_sniff()
