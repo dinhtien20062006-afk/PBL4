@@ -3,16 +3,13 @@ from typing import Optional
 from datetime import datetime
 
 class AlertCreate(BaseModel):
-    rule_id: Optional[int] = None
-    traffic_log_id: Optional[int] = None
+    ip_source: str
     attack_type: str
-    source_ip: str
-    severity: str = "High"
+    severity: str
+    threshold_value: int
 
 class TrafficLogCreate(BaseModel):
-    source_ip: str
-    dest_ip: str
-    port: int
+    ip_source: str
     protocol: str
-    packet_size: int
-    status: str = "Normal"
+    packet_count: int
+    port_target: int

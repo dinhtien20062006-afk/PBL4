@@ -13,7 +13,7 @@ from routers.stats import router as stats_router
 
 # Import Database & WebSocket Manager
 from app.database import Database, SessionLocal
-from app.models import TrafficLog
+from app.models import LogTraffic 
 from app.ws_manager import manager
 
 async def stream_traffic_data():
@@ -21,10 +21,11 @@ async def stream_traffic_data():
         await asyncio.sleep(1) # Lặp lại sau mỗi 1 giây
         db = SessionLocal()
         try:
-            # Lấy 5 log mạng mới nhất để vẽ biểu đồ
-            recent_logs = db.query(TrafficLog).order_by(TrafficLog.id.desc()).limit(5).all()
+            # Truy vấn bảng mới
+            recent_logs = db.query(LogTraffic).order_by(LogTraffic.id.desc()).limit(5).all()
             if recent_logs:
-                data = [{"ip": log.source_ip, "size": log.packet_size} for log in recent_logs]
+                # Đổi các trường dữ liệu cho khớp với model mới
+                data = [{"ip": log.ip_source, "size": log.packet_count} for log in recent_logs]
                 await manager.broadcast({"type": "traffic_stream", "data": data})
         except Exception as e:
             print(f"Lỗi Stream: {e}")
