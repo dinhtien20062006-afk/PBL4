@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import WebSocketDisconnect
 from contextlib import asynccontextmanager
 import asyncio
 
@@ -8,7 +9,7 @@ from routers.logs import router as logs_router
 from routers.alerts import router as alerts_router
 from routers.config import router as config_router
 from routers.blocked_ips import router as blocked_ips_router
-from routers.blocked_ips import unblock_router
+# from routers.blocked_ips import unblock_router
 from routers.stats import router as stats_router
 
 # Import Database & WebSocket Manager
@@ -24,7 +25,6 @@ async def stream_traffic_data():
             # Truy vấn bảng mới
             recent_logs = db.query(LogTraffic).order_by(LogTraffic.id.desc()).limit(5).all()
             if recent_logs:
-                # Đổi các trường dữ liệu cho khớp với model mới
                 data = [{"ip": log.ip_source, "size": log.packet_count} for log in recent_logs]
                 await manager.broadcast({"type": "traffic_stream", "data": data})
         except Exception as e:
@@ -65,7 +65,7 @@ app.add_middleware(
 app.include_router(logs_router)
 app.include_router(alerts_router)
 app.include_router(blocked_ips_router)
-app.include_router(unblock_router)
+# app.include_router(unblock_router)
 app.include_router(config_router)
 app.include_router(stats_router)
 
@@ -87,6 +87,11 @@ async def websocket_monitoring(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            await websocket.receive_text() # Giữ kết nối luôn mở
+            # Lắng nghe tín hiệu từ client để duy trì kết nối
+            data = await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+        print("[WebSocket] ⚠️ Frontend đã ngắt kết nối an toàn.")
+    except Exception as e:
+        manager.disconnect(websocket)
+        print(f"[WebSocket] ❌ Lỗi kết nối bất ngờ: {e}")

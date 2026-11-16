@@ -14,7 +14,7 @@ from app.models import BlacklistIP
 from app.ws_manager import manager
 
 router = APIRouter(prefix="/api/blocked-ips", tags=["Blocked IPs"])
-unblock_router = APIRouter(tags=["Blocked IPs"])
+# unblock_router = APIRouter(tags=["Blocked IPs"])
 logger = logging.getLogger(__name__)
 
 class UnblockRequest(BaseModel):
@@ -111,6 +111,6 @@ async def _unblock_ip(req: UnblockRequest, db: Session) -> dict:
 async def unblock_ip(req: UnblockRequest, db: Session = Depends(get_db)):
     return await _unblock_ip(req, db)
 
-@unblock_router.post("/api/unblock")
-async def unblock_ip_compat(req: UnblockRequest, db: Session = Depends(get_db)):
-    return await _unblock_ip(req, db)
+# @unblock_router.post("/api/unblock")
+# async def unblock_ip_compat(req: UnblockRequest, db: Session = Depends(get_db)):
+#     return await _unblock_ip(req, db)

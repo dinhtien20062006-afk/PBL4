@@ -28,7 +28,7 @@ async def trigger_alert(alert: AlertCreate, db: Session = Depends(get_db)):
 @router.get("/")
 def get_recent_alerts(limit: int = 50, db: Session = Depends(get_db)):
     alerts = db.query(AlertHistory).order_by(AlertHistory.detected_at.desc()).limit(limit).all()
-    # Cấu trúc trả về vẫn giữ key cũ để Frontend không bị lỗi hiển thị
+    
     data = [
         {
             "id": alert.id,

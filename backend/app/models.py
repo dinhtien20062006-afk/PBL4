@@ -38,3 +38,12 @@ class AlertHistory(Base):
     severity = Column(String(20), nullable=False)
     threshold_value = Column(Integer, nullable=False)
     detected_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+class AttackThreshold(Base):
+    __tablename__ = "attack_thresholds"
+    id = Column(Integer, primary_key=True, index=True)
+    attack_type = Column(String(50), unique=True, nullable=False)
+    threshold_limit = Column(Integer, nullable=False)
+    time_window_seconds = Column(Integer, nullable=False)
+    is_active = Column(Boolean, default=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

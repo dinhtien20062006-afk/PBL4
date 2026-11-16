@@ -13,3 +13,8 @@ class TrafficLogCreate(BaseModel):
     protocol: str
     packet_count: int
     port_target: int
+
+class ThresholdUpdate(BaseModel):
+    threshold_limit: Optional[int] = None
+    time_window_seconds: Optional[int] = None
+    is_active: Optional[bool] = None
