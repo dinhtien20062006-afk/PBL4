@@ -13,11 +13,11 @@ from firewall_manager import block_ip
 
 # ==================== CẤU HÌNH HỆ THỐNG ====================
 # Địa chỉ IP và Endpoint Backend FastAPI của Giàu (Cần thay đổi IP thực tế trong mạng LAN)
-BACKEND_URL = "http://192.168.1.20:8000/api/alerts/trigger"
+BACKEND_URL = "http:// 10.20.1.93:8000/api/alerts/trigger"
 
 # Cấu hình ngưỡng an toàn (Thresholds) theo đề tài[cite: 1]
-AUTH_FAIL_THRESHOLD = 15   
-SPAM_FAIL_THRESHOLD = 15   
+AUTH_FAIL_THRESHOLD = 25   
+SPAM_FAIL_THRESHOLD = 25   
 
 # Bộ nhớ tạm theo dõi vi phạm theo cơ chế Sliding Window: { ip: [timestamp1, timestamp2, ...] }
 auth_violations = defaultdict(list)
@@ -32,11 +32,14 @@ def background_request_worker():
         url, payload = request_queue.get()
         try:
             response = requests.post(url, json=payload, timeout=3)
-            if response.status_code in [200, 201]:
+            if response.ok:
                 print(f"[🔥 TRIGGER] Đã đẩy cảnh báo '{payload.get('attack_type')}' của IP {payload.get('ip_source')} sang Backend thành công!")
             else:
-                print(f"[-] Backend trả về lỗi khi nhận alert: {response.status_code}")
-        except Exception as e:
+                print(
+                    f"[-] Backend từ chối alert "
+                    f"({response.status_code}): {response.text}"
+                )
+        except requests.RequestException as e:
             print(f"[-] Không thể kết nối tới Backend của Giàu: {e}")
         finally:
             request_queue.task_done()
@@ -66,6 +69,7 @@ def trigger_alert_and_block(ip_source, attack_type, total_faults):
     payload = {
         "ip_source": ip_source,
         "attack_type": attack_type,
+        "severity": "high",
         "threshold_value": total_faults
     }
     
