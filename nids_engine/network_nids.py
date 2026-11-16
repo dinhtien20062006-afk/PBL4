@@ -10,8 +10,8 @@ from firewall_manager import block_ip
 # ==================== CẤU HÌNH HỆ THỐNG ====================
 # Địa chỉ URL Endpoint API tiếp nhận lưu lượng và cảnh báo của Giàu
 # (Cần thay thế '192.168.1.20' bằng IP thực tế trong mạng LAN của máy Giàu)
-TRAFFIC_API_URL = "http://192.168.1.20:8000/api/logs/traffic"
-ALERT_API_URL = "http://192.168.1.20:8000/api/alerts/trigger"
+TRAFFIC_API_URL = "http:// 192.168.64.122:8000/api/logs/traffic"
+ALERT_API_URL = "http:// 192.168.64.122:8000/api/alerts/trigger"
 
 # Cấu hình ngưỡng phát hiện SYN Flood (Ví dụ: > 50 gói SYN trong 1 giây từ một IP)
 SYN_THRESHOLD = 50
@@ -58,13 +58,19 @@ def reset_counter_periodic():
             for ip, count in current_traffic.items():
                 payload = {
                     "ip_source": ip,
+                    "protocol": "TCP",
                     "packet_count": count,
                     "port_target": 25  # Hoặc trích xuất linh hoạt port nếu cần
                 }
                 try:
-                    requests.post(TRAFFIC_API_URL, json=payload, timeout=0.5)
-                except Exception:
-                    pass
+                    response = requests.post(TRAFFIC_API_URL, json=payload, timeout=0.5)
+                    if not response.ok:
+                        print(
+                            f"[-] Backend từ chối traffic log "
+                            f"({response.status_code}): {response.text}"
+                        )
+                except requests.RequestException as e:
+                    print(f"[-] Lỗi gửi traffic log lên Backend: {e}")
         
         # 2. Xử lý thuật toán phát hiện SYN Flood (Threshold Check & Zero-Trust Enforcement)
         if current_syn:
@@ -84,13 +90,19 @@ def reset_counter_periodic():
                     alert_payload = {
                         "ip_source": ip,
                         "attack_type": "SYN Flood",
+                        "severity": "high",
                         "threshold_value": syn_count
                     }
                     try:
                         response = requests.post(ALERT_API_URL, json=alert_payload, timeout=0.5)
-                        if response.status_code in [200, 201]:
+                        if response.ok:
                             print(f"[+] Đã gửi cảnh báo SYN Flood của IP {ip} lên Backend thành công.")
-                    except Exception as e:
+                        else:
+                            print(
+                                f"[-] Backend từ chối cảnh báo "
+                                f"({response.status_code}): {response.text}"
+                            )
+                    except requests.RequestException as e:
                         print(f"[-] Lỗi kết nối API cảnh báo: {e}")
 
 def start_network_sniff():
