@@ -103,7 +103,7 @@ def _smtp_spam_worker(server_ip: str, port: int, valid_email: str, delay: float)
 
 
 def start_smtp_spam_simulation(
-    server_ip: str = "10.20.1.12",
+    server_ip: str = "192.168.64.121",
     port: int = 25,
     valid_email: str = "user01@company.local",
     delay: float = 0.25
@@ -142,7 +142,7 @@ def get_smtp_spam_status() -> Dict:
 if __name__ == "__main__":
     print("[!] Chạy độc lập script Spam Mail (Nhấn Ctrl+C để dừng)...")
     try:
-        _smtp_spam_worker("10.20.1.12", 25, "user01@company.local", delay=0.25)
+        _smtp_spam_worker("192.168.64.121", 25, "user01@company.local", delay=0.25)
     except KeyboardInterrupt:
         _stop_event.set()
         print("\n[*] Đã dừng thủ công.")
