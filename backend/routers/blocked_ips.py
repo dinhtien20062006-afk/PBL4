@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.firewall import block_ip as firewall_block_ip
 from app.firewall import is_ip_blocked as firewall_is_ip_blocked
-from app.firewall import unblock_ip as firewall_unblock_ip
+#from app.firewall import unblock_ip as firewall_unblock_ip
+from nids_engine.firewall_manager import unblock_ip as firewall_unblock_ip
 from app.models import BlacklistIP
 from app.ws_manager import manager
 
