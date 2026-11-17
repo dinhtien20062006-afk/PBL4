@@ -1,0 +1,26 @@
+.protocol-panel { min-width: 0; }
+
+.protocol-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: 200px;
+}
+
+.protocol-chart-wrap { width: 160px; height: 160px; flex-shrink: 0; }
+
+.protocol-legend { display: flex; flex-direction: column; gap: 11px; flex: 1; min-width: 0; max-width: 220px; }
+
+.protocol-legend-row { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+
+.protocol-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+.protocol-legend-label { color: var(--text); flex: 1; }
+
+.protocol-legend-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-h);
+  font-weight: 600;
+}

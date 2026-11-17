@@ -1,0 +1,57 @@
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Text, SmallInteger, Boolean
+from app.database import Base
+from datetime import datetime
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), default='admin')
+    last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+
+class LogTraffic(Base):
+    __tablename__ = "logs_traffic"
+    id = Column(BigInteger, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.now, index=True)
+    ip_source = Column(String(45), nullable=False, index=True)
+    protocol = Column(String(10), nullable=False)
+    packet_count = Column(Integer, nullable=False)
+    port_target = Column(SmallInteger, nullable=False)
+
+class BlacklistIP(Base):
+    __tablename__ = "blacklist_ips"
+    id = Column(Integer, primary_key=True, index=True)
+    ip_address = Column(String(45), nullable=False)
+    reason_blocked = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    unblocked_at = Column(DateTime, nullable=True)
+    status_active = Column(Boolean, default=True)
+    # Ghi chú: SQLAlchemy không hỗ trợ tạo Composite Index trực tiếp trên Column definitions
+    # một cách đơn giản cho MySQL TINYINT(1) / Boolean. Nên tạo trực tiếp trong SQL.
+
+class AlertHistory(Base):
+    __tablename__ = "alert_history"
+    id = Column(Integer, primary_key=True, index=True)
+    ip_source = Column(String(45), nullable=False)
+    attack_type = Column(String(50), nullable=False)
+    severity = Column(String(20), nullable=False)
+    threshold_value = Column(Integer, nullable=False)
+    detected_at = Column(DateTime, default=datetime.now, index=True)
+
+class AttackThreshold(Base):
+    __tablename__ = "attack_thresholds"
+    id = Column(Integer, primary_key=True, index=True)
+    attack_type = Column(String(50), unique=True, nullable=False)
+    threshold_limit = Column(Integer, nullable=False)
+    time_window_seconds = Column(Integer, nullable=False)
+    is_active = Column(Boolean, default=True)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+
+class SystemConfig(Base):
+    __tablename__ = "system_config"
+    config_key = Column(String(50), primary_key=True)
+    config_value = Column(Integer, nullable=False)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0
+mysql-connector-python
+python-dotenv
+pydantic>=2
+# Attack Lab: syn_flood.py dùng scapy để bắn gói TCP SYN thô (cần quyền Admin/Npcap trên Windows)
+scapy

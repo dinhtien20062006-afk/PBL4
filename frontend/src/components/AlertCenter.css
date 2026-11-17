@@ -1,0 +1,69 @@
+.alert-center { display: flex; flex-direction: column; gap: 16px; }
+
+.alert-center-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.alert-center-head h3 { font-size: 16px; }
+.alert-center-tools { display: flex; align-items: center; gap: 12px; }
+
+.alert-live {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--text-dim);
+}
+.alert-live.is-on { color: var(--ok); }
+
+.alert-center-list { display: flex; flex-direction: column; gap: 10px; }
+
+.alert-card {
+  --accent: var(--info);
+  display: flex; align-items: center; gap: 16px;
+  padding: 15px 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  /* Trình duyệt bỏ qua việc layout/vẽ các thẻ nằm ngoài màn hình -> cuộn mượt với danh sách dài */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 116px;
+}
+.alert-card.is-high { --accent: var(--crit); background: linear-gradient(90deg, rgba(251, 113, 133, 0.11), var(--panel) 60%); }
+.alert-card.is-med { --accent: var(--warn); background: linear-gradient(90deg, rgba(251, 191, 36, 0.08), var(--panel) 55%); }
+.alert-card.is-low { --accent: var(--info); }
+/* content-visibility cắt phần vẽ ngoài khung nên dùng viền trong thay cho bóng ngoài */
+.alert-card.is-new { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent); }
+
+.alert-card-icon {
+  flex-shrink: 0; width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border-radius: 11px; color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.alert-card-body { flex: 1; min-width: 0; }
+.alert-card-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; flex-wrap: wrap; }
+.alert-card-type { font-size: 14.5px; }
+.alert-card-sev {
+  font-size: 11.5px; font-weight: 600;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent);
+  padding: 2px 9px; border-radius: 999px;
+}
+.alert-card-new {
+  font-size: 11px; font-weight: 700; color: #fff; background: var(--crit-solid);
+  padding: 2px 8px; border-radius: 999px;
+  animation: blink 1.6s ease-in-out infinite;
+}
+
+.alert-card-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px 20px; margin: 0; }
+.alert-card-fields dt { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-dim); margin-bottom: 2px; }
+.alert-card-fields dd { margin: 0; font-size: 13px; color: var(--text-h); }
+.alert-card-ago { display: block; color: var(--text-dim); font-family: var(--sans); font-size: 12px; }
+
+.alert-card-btn {
+  flex-shrink: 0; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  color: var(--crit); background: var(--crit-bg);
+  border: 1px solid rgba(251, 113, 133, 0.3); border-radius: 8px; padding: 8px 15px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.alert-card-btn:hover:not(:disabled) { background: rgba(251, 113, 133, 0.22); border-color: var(--crit); }
+.alert-card-btn:disabled { color: var(--text-dim); background: var(--panel-alt); border-color: var(--border); cursor: default; }
+
+@keyframes blink { 50% { opacity: 0.55; } }
+
+@media (max-width: 700px) { .alert-card { flex-wrap: wrap; } }

@@ -1,0 +1,35 @@
+.top-sources-list { display: flex; flex-direction: column; gap: 14px; }
+
+.top-source-row { display: flex; align-items: center; gap: 12px; }
+
+.top-source-rank {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--panel-alt);
+  font-family: var(--mono);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.top-source-info { flex: 1; min-width: 0; }
+
+.top-source-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.top-source-ip { font-family: var(--mono); color: var(--text-h); }
+.top-source-packets { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--text-dim); flex-shrink: 0; }
+
+.top-source-bar-track { height: 6px; border-radius: 3px; background: var(--border-soft); overflow: hidden; }
+.top-source-bar { height: 100%; border-radius: 3px; background: var(--info); }
+.top-source-bar.is-suspicious { background: var(--warn); }
+.top-source-bar.is-blocked { background: var(--crit); }

@@ -1,0 +1,35 @@
+.config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-h); margin-bottom: 4px; }
+.field-hint { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+
+.field input {
+  width: 100%;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:hover { border-color: #34476f; }
+.field input:focus {
+  outline: none;
+  border-color: var(--info);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+.config-save-row { display: flex; align-items: center; gap: 14px; margin-top: 22px; }
+
+.config-status { font-size: 12.5px; font-weight: 600; }
+.config-status.is-ok { color: var(--ok); }
+.config-status.is-error { color: var(--crit); }
+
+@media (max-width: 700px) {
+  .config-grid { grid-template-columns: 1fr; }
+}
+
+.config-panel { max-width: 920px; }

@@ -1,0 +1,22 @@
+.blocked-table-scroll { overflow: auto; max-height: 440px; }
+.blocked-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.blocked-table th {
+  position: sticky; top: 0; z-index: 1;
+  text-align: left; font-size: 12px; font-weight: 600; color: var(--text-dim);
+  background: var(--panel);
+  padding: 0 12px 10px; border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.blocked-table td { padding: 12px; border-bottom: 1px solid var(--border-soft); }
+.blocked-table tr:last-child td { border-bottom: none; }
+.blocked-table tbody tr:hover { background: var(--panel-alt); }
+.blocked-table .ip { font-family: var(--mono); color: var(--text-h); }
+.blocked-table .dim { color: var(--text-dim); white-space: nowrap; }
+.blocked-table .right { text-align: right; }
+.blocked-error {
+  display: flex; justify-content: space-between; gap: 12px;
+  background: var(--crit-bg); color: var(--crit);
+  border: 1px solid rgba(251, 113, 133, 0.28);
+  padding: 9px 13px; border-radius: 8px; margin-bottom: 12px; font-size: 12.5px; font-weight: 500;
+}
+.blocked-error button { background: none; border: 0; color: inherit; text-decoration: underline; cursor: pointer; }
+.ip-management { display: flex; flex-direction: column; gap: 20px; }

@@ -1,0 +1,16 @@
+.traffic-panel { min-width: 0; }
+
+.traffic-current { display: flex; align-items: baseline; gap: 6px; flex-shrink: 0; }
+
+.traffic-current-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--info);
+}
+
+.traffic-current-unit { font-size: 12px; color: var(--text-dim); }
+
+.traffic-chart-wrap { height: 250px; }
+.traffic-chart-wrap.is-detailed { height: 340px; }

@@ -1,0 +1,12 @@
+.traffic-page { display: flex; flex-direction: column; gap: 14px; }
+
+.traffic-analysis-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .traffic-analysis-row { grid-template-columns: minmax(0, 1fr); }
+}
